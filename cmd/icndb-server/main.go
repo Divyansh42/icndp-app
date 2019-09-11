@@ -12,12 +12,14 @@ import (
 )
 
 var (
-	port string
-	name string
+	port  string
+	names string
+	version = "exp"
 )
+
 func main() {
 	flag.StringVar(&port, "port", "8000", "server listening port")
-	flag.StringVar(&name, "name", "Chuck Norris", "name in jokes")
+	flag.StringVar(&names, "names", "Chuck Norris", "name(s) in jokes 'FirstName LastName,FirstName LastName...")
 	flag.Parse()
 
 	addr := ":" + port
@@ -30,7 +32,30 @@ func main() {
 	}
 }
 
-func crackJoke(w http.ResponseWriter, r *http.Request)  {
+type Joke struct {
+	Name string
+	Joke string
+}
+
+func collectJokes() ([]Joke, error) {
+	jokes := []Joke{}
+	firstlastPairs := strings.Split(names, ",")
+	for _, fullName := range firstlastPairs {
+		url := buildUrl(fullName)
+		jokeText, err := fetchJoke(url)
+		if err != nil {
+			return []Joke{}, err
+		}
+		joke := Joke{
+			Name: fullName,
+			Joke: jokeText,
+		}
+		jokes = append(jokes, joke)
+	}
+	return jokes, nil
+}
+
+func crackJoke(w http.ResponseWriter, r *http.Request) {
 	tmplPath := filepath.Join("templates", "index.gohtml")
 	t, err := template.ParseFiles(tmplPath)
 	if err != nil {
@@ -38,40 +63,46 @@ func crackJoke(w http.ResponseWriter, r *http.Request)  {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	joke, err := fetchJoke()
+	jokes, err := collectJokes()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	data := struct {
-		Joke string
+	data := struct{
+		Jokes []Joke
+		Version string
 	}{
-		Joke: joke,
+		Jokes:   jokes,
+		Version: version,
 	}
-	log.Printf("joke: %s", joke)
 	t.Execute(w, data)
 }
 
 type icndbRes struct {
-	Type string `json:"type"`
+	Type  string       `json:"type"`
 	Value icndbPayload `json:"value"`
 }
 
 type icndbPayload struct {
-	ID float32 `json:"id"`
-	Joke string `json:"joke"`
+	ID         float32  `json:"id"`
+	Joke       string   `json:"joke"`
 	Categories []string `json:"categories"`
 }
 
-func fetchJoke() (string, error)  {
-	firstLast := strings.Split(name, " ")
+func buildUrl(fullName string) string {
 	url := "http://api.icndb.com/jokes/random?limitTo=nerdy"
+
+	firstLast := strings.Split(fullName, " ")
 	if len(firstLast) > 0 {
 		url += "&firstName=" + firstLast[0] + "&lastName="
 	}
 	if len(firstLast) > 1 {
 		url += firstLast[1]
 	}
+	return url
+}
+
+func fetchJoke(url string) (string, error) {
 	log.Printf("url: %s", url)
 	res, err := http.Get(url)
 	if err != nil {
@@ -89,5 +120,7 @@ func fetchJoke() (string, error)  {
 	if err != nil {
 		return "", err
 	}
-	return data.Value.Joke, nil
- }
+	joke := data.Value.Joke
+	log.Printf("joke: %s", joke)
+	return joke, nil
+}
