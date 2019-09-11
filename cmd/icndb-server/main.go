@@ -42,6 +42,7 @@ func crackJoke(w http.ResponseWriter, r *http.Request)  {
 	}{
 		Joke: joke,
 	}
+	log.Printf("joke: %s", joke)
 	t.Execute(w, data)
 }
 
