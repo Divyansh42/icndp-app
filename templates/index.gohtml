@@ -1,13 +1,22 @@
 <html>
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
 </head>
 
 <body>
-    <h3>Chuck Noris Fact </h3>
-    <p>
-        {{ .Joke}}
-    </p>
-    <hr>
+    <div class="jumbotron text-center">
+        <h1>Did you know?!</h1>
+        <p>Version: {{ .Version }}</p>
+    </div>
+    <div class="container">
+        <h2>Chuck Noris</h2>
+        <p class="lead">
+            {{ .Joke}}
+        </p>
+        <hr>
+    </div>
+
 </body>
 </html>

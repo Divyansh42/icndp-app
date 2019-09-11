@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: icndb-app
+  labels:
+    app: icndb-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: icndb-app
+  template:
+    metadata:
+      labels:
+        app: icndb-app
+    spec:
+      containers:
+        - name: icndb-server
+          image: nikhilvep/icndb-app:version-1.0
+          ports:
+            - containerPort: 8000

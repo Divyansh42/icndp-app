@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 )
 
+var version =  "1.0"
+
 func main() {
 	port := flag.String("port", "8000", "server listening port")
 	flag.Parse()
@@ -39,9 +41,12 @@ func crackJoke(w http.ResponseWriter, r *http.Request)  {
 	}
 	data := struct {
 		Joke string
+		Version string
 	}{
 		Joke: joke,
+		Version: version,
 	}
+	log.Printf("joke: %s", joke)
 	t.Execute(w, data)
 }
 
@@ -69,6 +74,7 @@ func fetchJoke() (string, error)  {
 	}
 
 	data := icndbRes{}
+
 	err = json.Unmarshal(buff, &data)
 	if err != nil {
 		return "", err
