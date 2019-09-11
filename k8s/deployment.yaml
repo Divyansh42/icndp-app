@@ -16,6 +16,9 @@ spec:
     spec:
       containers:
         - name: icndb-server
-          image: nikhilvep/icndb-app:0.1
+          image: nikhilvep/icndb-app:ver-2
+          args:
+            - "--name"
+            - "Rajnikanth"
           ports:
             - containerPort: 8000
