@@ -8,13 +8,20 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
+	"strings"
 )
 
+var (
+	port string
+	name string
+	version = "2.0"
+)
 func main() {
-	port := flag.String("port", "8000", "server listening port")
+	flag.StringVar(&port, "port", "8000", "server listening port")
+	flag.StringVar(&name, "name", "Chuck Norris", "name in jokes")
 	flag.Parse()
 
-	addr := ":" + *port
+	addr := ":" + port
 
 	http.HandleFunc("/", crackJoke)
 	log.Printf("Listening on: %s", addr)
@@ -39,8 +46,12 @@ func crackJoke(w http.ResponseWriter, r *http.Request)  {
 	}
 	data := struct {
 		Joke string
+		Name string
+		Version string
 	}{
 		Joke: joke,
+		Name: name,
+		Version: version,
 	}
 	log.Printf("joke: %s", joke)
 	t.Execute(w, data)
@@ -58,7 +69,16 @@ type icndbPayload struct {
 }
 
 func fetchJoke() (string, error)  {
-	res, err := http.Get("http://api.icndb.com/jokes/random?limitTo=nerdy")
+	firstLast := strings.Split(name, " ")
+	url := "http://api.icndb.com/jokes/random?limitTo=nerdy"
+	if len(firstLast) > 0 {
+		url += "&firstName=" + firstLast[0] + "&lastName="
+	}
+	if len(firstLast) > 1 {
+		url += firstLast[1]
+	}
+	log.Printf("url: %s", url)
+	res, err := http.Get(url)
 	if err != nil {
 		return "", err
 	}
